@@ -11,7 +11,7 @@ succ : nat -> nat.
 %%% Maximum as a ternary judgment
 max : nat -> nat -> nat -> type.
 maxZero1 : max zero N N.        
-maxZero2 : max M zero M.            
+maxZero2 : max (succ M) zero (succ M).            
 maxSucc  : max (succ M) (succ N) (succ P)
             <- max M N P.
 
@@ -45,3 +45,6 @@ hgtNode  : hgt (node T1 T2) (succ N)
 %worlds () (max _ _ _).
 %%% Tell Twelf to attempt to prove the above totality by induction on N1.
 %total N1 (max N1 _ _).
+
+%%% Tell Twelf to show uniqueness too.
+%unique max +N1 +N2 -1N3.
