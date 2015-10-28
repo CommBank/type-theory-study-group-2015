@@ -3,9 +3,13 @@
 ### Type Theory Study Group
 
 **PLATYPUS<sup>*</sup>** 
-is a study group meeting weekly in Sydney, Australia for people interested in learning more about type theory.
+is a study group meeting weekly in Sydney, Australia for people interested in learning more about type theory and its connections to programming languages.
 
 [![Gitter chat](http://img.shields.io/badge/GITTER-join%20chat%20%E2%86%92-brightgreen.svg)](https://gitter.im/CommBank/PLATYPUS)
+</br/>
+Twitter [@SydneyTypes](https://twitter.com/SydneyTypes)
+<br/>
+Meetup [Sydney Type Theory](http://www.meetup.com/Sydney-Type-Theory/)
 
 All are welcome!
 
@@ -13,7 +17,9 @@ Inspired by the online [Type Theory Study Group 2015](https://github.com/type-th
 
 
 
-&#42; Programming Languages and Types (yet perfectly understandable) in Sydney &mdash; thanks to Danny Gratzer for the name.
+
+
+&#42; Programming Languages and Types (yet perfectly understandable) in Sydney &mdash; thanks to Danny Gratzer for the name suggestion.
 
 
 ## When and where
