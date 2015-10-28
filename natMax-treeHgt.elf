@@ -1,0 +1,33 @@
+
+%% Unary natural numbers
+nat : type.
+zero : nat.
+succ : nat -> nat.
+
+%% Maximum as a ternary judgment
+max : nat -> nat -> nat -> type.
+maxZero1 : max zero N N.        
+maxZero2 : max M zero M.            
+maxSucc  : max (succ M) (succ N) (succ P)
+            <- max M N P.
+
+%%% declare totality assertion
+%worlds () (max _ _ _).
+%mode max +N1 +N2 -N3.
+%%% check totality assertion
+%total N1 (max N1 _ _).
+
+tree : type.
+empty : tree.
+node : tree -> tree -> tree.
+
+hgt : tree -> nat -> type.
+hgtEmpty : hgt empty zero.
+hgtNode  : hgt (node T1 T2) (succ N)
+            <- hgt T1 N1
+            <- hgt T2 N2
+            <- max N1 N2 N.
+
+%query 1 1 hgt (node (node empty empty) empty) N.
+%query 1 1 D : hgt (node (node empty empty) empty) N.
+            
