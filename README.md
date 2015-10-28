@@ -1,5 +1,7 @@
 ### Type Theory Study Group 2015
 
+[![Join the chat at https://gitter.im/CommBank/PLATYPUS](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/CommBank/PLATYPUS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 An online study group, open to all, dedicated to learning Type Theory.
 
 The initial plan is to read Bob Harper's, Practical Foundations of Programming Languages, 2nd Edition. This book is only available as an [online draft](http://www.cs.cmu.edu/~rwh/plbook/2nded.pdf).
