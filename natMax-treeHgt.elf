@@ -1,6 +1,7 @@
-%% Some example Twelf code corresponding to parts of exercises 2.1 & 2.2 in PFPL (2ed draft) 
+%% Example Twelf code corresponding to parts of exercises 2.1 & 2.2 in PFPL (2ed draft) 
 %% From the end of the second PLATYPUS session (Chapters 1 & 2)
-%% Type check and execute the query via http://twelf.org/live/ or download Twelf from http://twelf.org/wiki/Download
+%% Type check and execute the query via http://twelf.org/live/ 
+%% or download Twelf from http://twelf.org/wiki/Download
 
 %%% Unary natural numbers
 nat : type.
@@ -28,18 +29,19 @@ hgtNode  : hgt (node T1 T2) (succ N)
             <- max N1 N2 N.
 
 
-%%% A query that finds the height of a particular tree (with 1 answer expected with 1 attempt)
+%%% A query that finds the height of a particular tree 
+%%% (with 1 answer expected from 1 attempt).
 %query 1 1 hgt (node (node empty empty) empty) N.
 
 %% The same query with the derivation D of the query goal also output.
 %query 1 1 D : hgt (node (node empty empty) empty) N.
 
 
-%% Totality: The following tells Twelf to semi-automatically prove the existence part of exercise 2.1
+%% Totality: tell Twelf to semi-automatically prove the existence part of exercise 2.1
             
-%%% This specifies that max is total, i.e., with N1 and N2 inputs, there's always an output N3.
+%%% Specifies that max is total: with N1 and N2 inputs, there's always an output N3.
 %mode max +N1 +N2 -N3.
-%%% This is a a hint on what combinations of bound variables need to be considered - here there are none.
+%%% A hint on what combinations of bound variables can occur - here there are none.
 %worlds () (max _ _ _).
-%%% This tells Twelf to attempt to prove the above totality by induction on the first argument, N1.
+%%% Tell Twelf to attempt to prove the above totality by induction on N1.
 %total N1 (max N1 _ _).
