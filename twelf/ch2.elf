@@ -1,3 +1,4 @@
+
 %% Example Twelf code corresponding to parts of exercises 2.1 & 2.2 in PFPL (2ed draft) 
 %% From the end of the second PLATYPUS session (Chapters 1 & 2)
 %% Type check and execute the query via http://twelf.org/live/ 
@@ -34,17 +35,19 @@ hgtNode  : hgt (node T1 T2) (succ N)
 %query 1 1 hgt (node (node empty empty) empty) N.
 
 %% The same query with the derivation D of the query goal also output.
-%query 1 1 D : hgt (node (node empty empty) empty) N.
+%query 1 1 D: hgt (node (node empty empty) empty) N.
 
 
 %% Totality: tell Twelf to semi-automatically prove the existence part of exercise 2.1
             
-%%% Specifies that max is total: with N1 and N2 inputs, there's always an output N3.
+%%% Specifies that each rule for max has some N3 for each N1 and N2.
 %mode max +N1 +N2 -N3.
 %%% A hint on what combinations of bound variables can occur - here there are none.
 %worlds () (max _ _ _).
-%%% Tell Twelf to attempt to prove the above totality by induction on N1.
+%%% Tell Twelf to attempt to prove max is total, for the mode above, by induction on N1.
 %total N1 (max N1 _ _).
 
-%%% Tell Twelf to show uniqueness too.
+%%% Tell Twelf to show uniqueness of N3 too.
 %unique max +N1 +N2 -1N3.
+
+

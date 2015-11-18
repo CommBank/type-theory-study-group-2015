@@ -1,0 +1,54 @@
+
+%% Example Twelf code corresponding to parts of exercises 3.2, 3.3 & 3.4 in PFPL (2ed draft) 
+%% From the third PLATYPUS session (Chapter 3)
+%% Type check and execute the query via http://twelf.org/live/ 
+%% or download Twelf from http://twelf.org/wiki/Download
+
+%%% Unary natural numbers (from before + add)
+nat : type.
+zero : nat.
+succ : nat -> nat.
+
+%% addition of natural numbers (for 3.1 below)
+plus : nat -> nat -> nat -> type.
+plus-z : plus zero N2 N2.
+plus-s : plus (succ N1) N2 (succ N)
+          <- plus N1 N2 N.
+
+
+%%% s k combinators
+comb : type.
+s : comb.
+k : comb.
+ap : comb -> comb -> comb.
+
+%%% Length as a binary judgment (PFPL 3.1)
+length : comb -> nat -> type.
+len-s : length s (succ zero).
+len-k : length k (succ zero).
+len-ap : length (ap Comb1 Comb2) N
+          <- length Comb1 N1
+          <- length Comb2 N2
+          <- plus N1 N2 N.
+
+comb-eq : comb -> comb -> type.
+%%comb-eq-id : comb-eq C C.
+
+comb-eq-s : comb-eq s s.
+comb-eq-k : comb-eq k k.
+comb-eq-ap : comb-eq (ap C11 C12) (ap C21 C22)
+              <- comb-eq C11 C21
+              <- comb-eq C12 C22.
+
+%% PFPL 3.2 - prove substitution lemma for comb - via adequecy(?)  UNFINISHED
+%%subst : {a2 : comb -> comb} {a1 : comb} (comb-eq C (a2 a1)) -> type.
+%%subst-rule : subst ([x:comb] A2 x) A1 (comb-eq-rule (A2 A1) (A2 A1)).
+
+%%  PFPL 3.4 (bracket abstraction)
+bracket : (comb -> comb) -> comb -> type.
+
+b-i : bracket ([x] x) (ap (ap s k) k).
+b-k : bracket ([x] Y) (ap k Y).
+b-s : bracket ([x] ap (N1 x) (N2 x)) (ap (ap s N1') N2')
+       <- bracket ([x] N1 x) N1'
+       <- bracket ([x] N2 x) N2'.
