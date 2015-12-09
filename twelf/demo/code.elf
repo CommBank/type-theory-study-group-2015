@@ -1,0 +1,94 @@
+%% Demo of Twelf 
+%% From the 8th PLATYPUS session (9 December, 2015)
+
+%% Type check and execute queries via http://twelf.org/live/ 
+%% or download Twelf from http://twelf.org/wiki/Download
+
+%% From emacs use the menus.  Or:
+%%%   ctl-c ctl-s to type check and run queries
+%%    ctl-c ctl-u to show the result from the server
+
+%%% Unary natural numbers
+nat : type.
+zero : nat.
+succ : nat -> nat.
+
+%%% Judgements for even and odd, as types parameterized by objects (nats in this case)
+even : nat -> type.
+odd  : nat -> type.
+
+%%% Rules for even and odd, as named constructors for the even and odd types.
+ev/zero : even zero.      %% This needs to be first for the first query below to succeed.
+ev/succ : even (succ N)
+           <- odd N.      %% During queries, this is solved as a subgoal similar to prolog.
+od/succ : odd (succ N)
+           <- even N.     %% During queries, this is solved as a subgoal similar to prolog.
+
+%%% Add two natural numbers, as a judgement (type parameterised by objects).
+add : nat -> nat -> nat -> type.
+add/z : add zero N N.
+add/s : add (succ N1) N2 (succ N3)
+         <- add N1 N2 N3.
+
+%%% Query to solve "1 + 1" (with 1 success in 2 attempts)
+%query 1 2  add (succ zero) (succ zero) N.
+
+%%% Ditto, but also show the derivation D that has the given type.
+%query 1 2  D : add (succ zero) (succ zero) N.
+
+%%% Query to search for 4 odd numbers in 4 attempts
+%query * 4 odd N.
+
+%%% If instead you do the below, you may have to kill the twelf-server
+%%% because `query 4 *` means find 4 solutions when searching for all solutions.
+%%% %query 4 * odd N.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+%%% A type for strings (so far just empty strings).
+
+string : type.
+empty : string.
+
+length : string -> nat -> type.
+len/empty : length empty zero.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+%%% Syntax for a small language (a subset of PFPL Chapter 3)
+
+%%% Types of for our small language
+ty : type.
+tnum : ty.
+tstr : ty.
+
+%%% Expressions for our small language
+exp : type.
+num  : nat -> exp.
+plus : exp -> exp -> exp.
+len  : exp -> exp.
+let  : exp -> (exp -> exp) -> exp.
+
+%%% Typing of expressions in our small language
+ofty : exp -> ty -> type.
+ofty/num : ofty (num N) tnum.
+ofty/let : ofty (let E1 E2) T2
+            <- ofty E1 T1
+            <- {x : exp} (ofty x T1 -> ofty (E2 x) T2).
+
+%%% Query to find the type T of a particular expression.
+%query 1 2  ofty (let (num zero) ([x] x)) T.
+
+%%% Homework: fill in the rest of the above following PFPL chapter 4. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+

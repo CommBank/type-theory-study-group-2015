@@ -1,0 +1,79 @@
+Twelf 1.7.1 (built 03/19/11 at 08:23:24 on concordia.westell.com)
+%% OK %%
+OS.exit
+
+Process twelf-server finished
+Twelf 1.7.1 (built 03/19/11 at 08:23:24 on concordia.westell.com)
+%% OK %%
+set chatter 3
+%% OK %%
+loadFile code.elf
+[Opening file code.elf]
+nat : type.
+zero : nat.
+succ : nat -> nat.
+even : nat -> type.
+odd : nat -> type.
+ev/zero : even zero.
+ev/succ : {N:nat} odd N -> even (succ N).
+od/succ : {N:nat} even N -> odd (succ N).
+add : nat -> nat -> nat -> type.
+add/z : {N:nat} add zero N N.
+add/s : {N1:nat} {N2:nat} {N3:nat} add N1 N2 N3 -> add (succ N1) N2 (succ N3).
+%query 1 2
+
+add (succ zero) (succ zero) N.
+---------- Solution 1 ----------
+N = succ (succ zero).
+____________________________________________
+
+%query 1 2
+
+add (succ zero) (succ zero) N.
+---------- Solution 1 ----------
+N = succ (succ zero).
+D = add/s add/z.
+____________________________________________
+
+%query * 4
+
+odd N.
+---------- Solution 1 ----------
+N = succ zero.
+---------- Solution 2 ----------
+N = succ (succ (succ zero)).
+---------- Solution 3 ----------
+N = succ (succ (succ (succ (succ zero)))).
+---------- Solution 4 ----------
+N = succ (succ (succ (succ (succ (succ (succ zero)))))).
+____________________________________________
+
+string : type.
+empty : string.
+length : string -> nat -> type.
+len/empty : length empty zero.
+ty : type.
+tnum : ty.
+tstr : ty.
+exp : type.
+num : nat -> exp.
+plus : exp -> exp -> exp.
+len : exp -> exp.
+let : exp -> (exp -> exp) -> exp.
+ofty : exp -> ty -> type.
+ofty/num : {N:nat} ofty (num N) tnum.
+ofty/let :
+   {T1:ty} {E2:exp -> exp} {T2:ty} {E1:exp}
+      ({x:exp} ofty x T1 -> ofty (E2 x) T2) -> ofty E1 T1
+         -> ofty (let E1 ([x:exp] E2 x)) T2.
+%query 1 2
+
+ofty (let (num zero) ([x:exp] x)) T.
+---------- Solution 1 ----------
+T = tnum.
+____________________________________________
+
+[Closing file code.elf]
+%% OK %%
+set chatter 3
+%% OK %%
