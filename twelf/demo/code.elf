@@ -30,6 +30,18 @@ add/z : add zero N N.
 add/s : add (succ N1) N2 (succ N3)
          <- add N1 N2 N3.
 
+%%% Specifies that each rule for max has some N3 for each N1 and N2.
+%mode add +N1 +N2 -N3.
+%%% A hint on what combinations of bound variables can occur - here there are none.
+%worlds () (add _ _ _).
+%%% Tell Twelf to attempt to prove max is total, for the mode above, by induction on N1.
+%total N1 (add N1 _ _).
+
+%%% Tell Twelf to show uniqueness of N3 too.
+%unique add +N1 +N2 -1N3.
+
+
+
 %%% Query to solve "1 + 1" (with 1 success in 2 attempts)
 %query 1 2  add (succ zero) (succ zero) N.
 
@@ -52,6 +64,9 @@ empty : string.
 length : string -> nat -> type.
 len/empty : length empty zero.
 
+%mode length +S -N.
+%worlds () (length _ _).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 %%% Syntax for a small language (a subset of PFPL Chapter 3)
 
@@ -63,32 +78,143 @@ tstr : ty.
 %%% Expressions for our small language
 exp : type.
 num  : nat -> exp.
+str  : string -> exp.
 plus : exp -> exp -> exp.
 len  : exp -> exp.
 let  : exp -> (exp -> exp) -> exp.
 
+%%% We'd add these for functions.
+% lam  : (exp -> exp) -> exp.
+% app  : exp -> (exp -> exp).    %% The parens are optional here.
+
 %%% Typing of expressions in our small language
 ofty : exp -> ty -> type.
 ofty/num : ofty (num N) tnum.
+ofty/str : ofty (str S) tstr.
+ofty/plus : ofty (plus E1 E2) tnum
+             <- ofty E1 tnum
+             <- ofty E2 tnum.
+
+ofty/len : ofty (len E) tnum
+            <- ofty E tstr.
+
 ofty/let : ofty (let E1 E2) T2
             <- ofty E1 T1
-            <- {x : exp} (ofty x T1 -> ofty (E2 x) T2).
+            <- {x : exp} {d : ofty x T1} ofty (E2 x) T2.
 
 %%% Query to find the type T of a particular expression.
-%query 1 2  ofty (let (num zero) ([x] x)) T.
+%query 1 2  D : ofty (let (num zero) ([x] x)) T.
+%query 1 2  D : ofty (let (str empty) ([x] (len x))) T.
 
-%%% Homework: fill in the rest of the above following PFPL chapter 4. 
+%%% A query that fails - the expression has no type.
+%query 0 1  D : ofty (let (num zero) ([x] (len x))) T.
 
-
-
-
-
-
-
+%% A query that finds 3 expresions with type tnum.
+%query 3 3  ofty E tnum.
 
 
 
+%%% Exercise: fill in the rest of the above following PFPL chapter 4. 
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+%%% Structural Dynamics (following PFPL Section 5.2)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+
+%%% The judgment for values 
+val : exp -> type.
+val/num : val (num N).                          %% PFPL rule 5.3a
+val/str : val (str N).                          %% PFPL rule 5.3b
+
+%%% Single step evaluation
+ev : exp -> exp -> type.
+
+ev/plus : ev (plus (num N1) (num N2)) (num N3)  %% PFPL rule 5.4a
+           <- add N1 N2 N3.
+
+ev/plus1 : ev (plus E1 E2) (plus E1p E2)        %% PFPL rule 5.4b
+           <- ev E1 E1p.
+
+ev/plus2 : ev (plus E1 E2) (plus E1 E2p)        %% PFPL rule 5.4c
+            <- val E1 
+            <- ev E2 E2p.
+
+ev/len   : ev (len (str E)) (num N)             %% Omitted in PFPL
+            <- length E N.
+
+ev/len1  : ev (len E) (len Ep)                  %% Omitted in PFPL
+            <- ev E Ep.
+
+ev/let   : ev (let E1 E2) (E2 E1).              %% PFPL rule 5.4h
+%            <- val E1.                         %% Add this subgoal For call-by-value (as in PFPL)         
+
+% ev/let1   : ev (let E1 E2) (let E1p E2)       %% PFPL rule 5.4g   For call-by-value evaluation. 
+%            <- ev E1 E1p.     
+
+%%% Multiple step evaluation (PFPL Section 5.1)
+ev* : exp -> exp -> type.
+
+ev*/0 : ev* E E.           %% PFPL rule 5.1a
+ev*/+ : ev* E1 E2          %% PFPL rule 5.1b
+         <- ev E1 E2   
+         <- ev* E2 E3.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+%%% Type preservation proof: every step preserves the type.  (Following PFPL 2ed theorem 6.2)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+ 
+%%% "Metatheoretic" proofs like this are written as logic programs that tranform input
+%%% derivations to produce output derivations.
+
+%%% Note: every case for the first two arguments matches (exactly) one of the following rules.
+%%% Also: every recursive subgoal has a smaller second argument `Dev : ev E Ep` (so we terminate)
+%%% Thus: This can always construct the third derivation from the first two.
+%%% So:   If  `ofty E T`  and  `ev E Ep`  then  `ofty Ep T`
+
+ty-pres   : ofty E T -> ev E Ep -> ofty Ep T -> type.  %% PFPL Theorem 6.2
+
+ty-pres/plus  : ty-pres (ofty/plus Dofty1 Dofty2) (ev/plus Dadd) ofty/num.
+
+ty-pres/plus1 : ty-pres (ofty/plus Dofty2 Dofty1) (ev/plus1 Dev) (ofty/plus Dofty2 Dofty1p)
+                 <- ty-pres Dofty1 Dev Dofty1p.                %% case 1 shown in the PFPL proof
+
+ty-pres/plus2 : ty-pres (ofty/plus Dofty2 Dofty1) (ev/plus2 Dev Dval) (ofty/plus Dofty2p Dofty1)
+                 <- ty-pres Dofty2 Dev Dofty2p.                %% Dval in the input isn't used.
+
+ty-pres/len   : ty-pres (ofty/len Dstr) (ev/len Dlen) ofty/num.
+
+ty-pres/len1  : ty-pres (ofty/len Dofty) (ev/len1 Dev) (ofty/len Doftyp)
+                 <- ty-pres Dofty Dev Doftyp.
+
+ty-pres/let   : ty-pres (ofty/let ([x] [dx] Dofty2 x dx) Dofty1) ev/let (Dofty2 E1 Dofty1).
+                                                               %% case 2 shown in the PFPL proof
+
+%%%% The same as the last case but with some additional types and bound variables made explicit.
+%% ty-pres/let : ty-pres (ofty/let (Dofty2 : {x : exp} {dx : ofty x T1} ofty (E2 x) T2)
+%%                                 (Dofty1 : ofty E1 T1))
+%%                       ev/let
+%%                       (Dofty2 E1 Dofty1).
 
 
+%%% Specify the inputs and outputs for the intended "mode" of use for ty-pres
+%mode ty-pres +Dof1 +Dev -Dofp.
+%%% A hint on what combinations of bound variables can occur - here there are none.
+%worlds () (ty-pres _ _ _).
+%%% Tell Twelf to attempt to prove that ty-pres is total for the mode above, by induction on Dev.
+%total Dev (ty-pres _ Dev _).
+
+%%% If the above %total assertion is accepted, then twelf has checked correctness of our proof,
+%%% as per the comment above ty-pres (every case is covered, and every recursion terminates).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+%%% Alternative type preservation proof via an experimental feature
+
+%%% The following instead asks twelf to fill in the cases in the proof automatically.
+%%% This succeeds in this case, and quite often - the types restrict the search significantly.
+%%% See: https://www.cs.cmu.edu/~twelf/guide-1-4/twelf_10.html 
+%theorem ty-pres-auto : forall {E : exp} {T : ty} {Ep : exp} {Dofty1 : ofty E T} {Dev : ev E Ep}
+                        exists {Dofty2 : ofty Ep T}
+                        true.
+
+%% Search for a proof inductive on Dev, with search depth limited to 2.
+%prove 2 Dev (ty-pres-auto _ _ _ _ Dev _).
