@@ -199,9 +199,9 @@ ty-pres/let   : ty-pres (ofty/let ([x] [dx] Dofty2 x dx) Dofty1) ev/let (Dofty2 
 %%% Specify the inputs and outputs for the intended "mode" of use for ty-pres
 %mode ty-pres +Dof1 +Dev -Dofp.
 %%% A hint on what combinations of bound variables can occur - here there are none.
-%worlds () (ty-pres _ _ _).
+%% worlds () (ty-pres _ _ _).
 %%% Tell Twelf to attempt to prove that ty-pres is total for the mode above, by induction on Dev.
-%total Dev (ty-pres _ Dev _).
+%% total Dev (ty-pres _ Dev _).
 
 %%% If the above %total assertion is accepted, then twelf has checked correctness of our proof,
 %%% as per the comment above ty-pres (every case is covered, and every recursion terminates).
@@ -212,9 +212,57 @@ ty-pres/let   : ty-pres (ofty/let ([x] [dx] Dofty2 x dx) Dofty1) ev/let (Dofty2 
 %%% The following instead asks twelf to fill in the cases in the proof automatically.
 %%% This succeeds in this case, and quite often - the types restrict the search significantly.
 %%% See: https://www.cs.cmu.edu/~twelf/guide-1-4/twelf_10.html 
-%theorem ty-pres-auto : forall {E : exp} {T : ty} {Ep : exp} {Dofty1 : ofty E T} {Dev : ev E Ep}
-                        exists {Dofty2 : ofty Ep T}
-                        true.
+%% theorem ty-pres-auto : forall {E : exp} {T : ty} {Ep : exp} {Dofty1 : ofty E T} {Dev : ev E Ep}
+                        %% exists {Dofty2 : ofty Ep T}
+                        %% true.
 
 %% Search for a proof inductive on Dev, with search depth limited to 2.
-%prove 2 Dev (ty-pres-auto _ _ _ _ Dev _).
+%% prove 2 Dev (ty-pres-auto _ _ _ _ Dev _).
+
+%% nval : exp -> type.
+%% nval : (app
+
+
+%%%%%%% Adding higher-order functions, PFPL Chapter 8
+
+=> : ty -> ty -> ty.
+%infix right 8 =>.
+
+lam  : (exp -> exp) -> exp.
+app  : exp -> (exp -> exp).    %% The parens are optional here.
+
+ofty/lam : ofty (lam E) (T1 => T2)
+            <- {x : exp} {d : ofty x T1} ofty (E x) T2.
+ofty/app : ofty (app E1 E2) T
+            <- ofty E1 (T2 => T)
+            <- ofty E2 T2.
+
+
+val/lam : val (lam E).
+ev/app1  : ev (app E1 E2) (app E1' E2)
+            <- ev E1 E1'.
+
+ev/app-lam : ev (app (lam E1) E2) (E1 E2).
+
+%%%%%%%%%%%%%%%%%%   Progress proof, PFPL 8.6
+
+eprogress : exp -> type.
+
+eprog/val : eprogress E
+             <- val E.
+eprog/step : eprogress E
+              <- ev E E'.
+
+progress : {E : exp} ofty E T -> eprogress E -> type.
+
+progress/lam  : progress (lam E') (ofty/lam D) (eprog/val val/lam).
+
+%%  The next two cases basically work, but I now think that we may
+%%  need an "output factoring lemma" here for totality to be checked see:
+%%     http://twelf.org/wiki/Output_factoring 
+
+progress/app1 : progress (app E1 E2) (ofty/app D2 D1) (eprog/step (ev/app1 Dev1))
+                 <- progress E1 D1 (eprog/step Dev1).
+progress/app2 : progress (app (lam E1) E2) (ofty/app D2 D1) (eprog/step ev/app-lam)
+                 <- progress (lam E1) D1 (eprog/val Dval1).
+
