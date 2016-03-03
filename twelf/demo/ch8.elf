@@ -1,0 +1,78 @@
+%%%%%%% Higher-order functions, PFPL Chapter 8
+
+%% Syntax: types and expressions.
+ty : type.               %name ty T t.        %% Tell Twelf to use names starting with T and t.
+=>   : ty -> ty -> ty.   %infix right 8 =>.
+unit : ty.                                    %% Included so we have a base type. 
+
+exp : type.              %name exp E e.       %% Tell Twelf to use names starting with E and e.
+lam  : (exp -> exp) -> exp.
+app  : exp -> (exp -> exp).    %% The parens are optional here.
+triv : exp.                    %% Trivial product with type unit, as per PFPL Chapter 10
+
+%%% Typing of expressions
+ofty : exp -> ty -> type.            %name ofty Dofty dofty.
+ofty/lam  : ofty (lam E) (T1 => T2)
+             <- {x : exp} {d : ofty x T1} ofty (E x) T2.
+ofty/app  : ofty (app E1 E2) T
+             <- ofty E1 (T2 => T)
+             <- ofty E2 T2.
+ofty/triv : ofty triv unit.
+
+%% Structural dynamics: values and evaluation steps (call-by-name)
+val : exp -> type.          %name val Dval dval.
+val/lam  : val (lam E).
+val/triv : val triv.
+
+ev : exp -> exp -> type.     %name ev Dev dev.
+ev/app1  : ev (app E1 E2) (app E1' E2)
+            <- ev E1 E1'.
+ev/app-lam : ev (app (lam E1) E2) (E1 E2).
+
+%%%%%%%%%%%%%%%%%%   Progress proof, PFPL Theorem 8.6
+
+%% First, a simple judgement to capture that an expression is either a value or has a step.
+eprogress : exp -> type.
+eprog/val : eprogress E
+             <- val E.
+eprog/step : eprogress E
+              <- ev E E'.
+
+%% An "output factoring" lemma that splits out the two cases for `eprogress E1` to show
+%% `eprogress (app E1 E2)` for each.  It is applied to the induction output in progress/app.
+%% The val case essentially includes the canonical forms lemma 8.5 from PFPL. 
+progress-app : {E2 : exp} eprogress E1 -> ofty E1 (T2 => T) -> eprogress (app E1 E2) -> type.
+
+%% (It seems having _ instead of T2 and T caused the issue we had at the end of the session.)
+
+p-a/step : progress-app E2 (eprog/step S) Dofty1 (eprog/step (ev/app1 S)).
+p-a/val  : progress-app E2 (eprog/val val/lam) (ofty/lam _) (eprog/step ev/app-lam).
+
+%mode progress-app +E2 +Deprogress1 +Dofty -Deprogress.
+%worlds () (progress-app _ _ _ _).     %% No bound variables are added in `progress-app`.
+%total {} (progress-app _ _ _ _).      %% Check that there's always an output for the inputs.
+
+%% Progress theorem - by induction on the typing derivation `of E T`
+progress : {E : exp} {T : ty} ofty E T -> eprogress E -> type.
+
+progress/lam  : progress (lam E') (T1 => T2) (ofty/lam D) (eprog/val val/lam). %% lams are vals
+                %% The type constraints below are just for clarity.
+progress/app  : progress (app E1 E2) T (ofty/app Dofty2 (Dofty1 : ofty E1 (T2 => T)))
+                         (Deprogress : eprogress (app E1 E2))   
+                 <- progress E1 (T2 => T) Dofty1 (Deprogress1 : eprogress E1)  %% Inductively
+                 <- progress-app E2 Deprogress1 Dofty1 Deprogress.             %% Above lemma
+
+progress/triv : progress triv unit ofty/triv (eprog/val val/triv).             %% triv is a val
+
+%mode progress +E +T +Dofty -Deprogress.
+%worlds () (progress _ _ _ _).           %%% The induction in `progress` adds no bound variables.
+%total Dofty (progress _ _ Dofty _).     %%% Check that progress is total by induction on Dofty.
+
+%% What we had at the end of the first session - output coverage checking fails.  Generally
+%% Twelf needs us factor out lemmas instead of applying inversion directly to a previous output.
+%
+% progress/app1 : progress (app E1 E2) (ofty/app D2 D1) (eprog/step (ev/app1 Dev1))
+%                  <- progress E1 D1 (eprog/step Dev1).
+% progress/app2 : progress (app (lam E1) E2) (ofty/app D2 D1) (eprog/step ev/app-lam)
+%                  <- progress (lam E1) D1 (eprog/val Dval1).
+

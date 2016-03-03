@@ -9,7 +9,7 @@
 %%    ctl-c ctl-u to show the result from the server
 
 %%% Unary natural numbers
-nat : type.
+nat : type.            %name nat N n.
 zero : nat.
 succ : nat -> nat.
 
@@ -58,37 +58,42 @@ add/s : add (succ N1) N2 (succ N3)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 %%% A type for strings (so far just empty strings).
 
-string : type.
+string : type.                   %name string Str str.
 empty : string.
 
-length : string -> nat -> type.
+length : string -> nat -> type.  %name length Len len.
 len/empty : length empty zero.
 
 %mode length +S -N.
 %worlds () (length _ _).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-%%% Syntax for a small language (a subset of PFPL Chapter 3)
+%%% Statics for a small language.  Includes: 
+%%% - most of the language in PFPL Chapter 3
+%%% - higher-order functions from PFPL Chapter 8
 
 %%% Types of for our small language
-ty : type.
+ty : type.               %name ty T t.        %% Tell Twelf to use names starting with T and t.
 tnum : ty.
 tstr : ty.
+=>   : ty -> ty -> ty.   %infix right 8 =>.
 
 %%% Expressions for our small language
-exp : type.
+exp : type.              %name exp E x.       %% Tell Twelf to use names starting with E and x.
 num  : nat -> exp.
 str  : string -> exp.
 plus : exp -> exp -> exp.
 len  : exp -> exp.
 let  : exp -> (exp -> exp) -> exp.
+lam  : (exp -> exp) -> exp.
+app  : exp -> (exp -> exp).    %% The parens are optional here.
 
 %%% We'd add these for functions.
 % lam  : (exp -> exp) -> exp.
 % app  : exp -> (exp -> exp).    %% The parens are optional here.
 
 %%% Typing of expressions in our small language
-ofty : exp -> ty -> type.
+ofty : exp -> ty -> type.            %name ofty Dofty dofty.
 ofty/num : ofty (num N) tnum.
 ofty/str : ofty (str S) tstr.
 ofty/plus : ofty (plus E1 E2) tnum
@@ -102,6 +107,13 @@ ofty/let : ofty (let E1 E2) T2
             <- ofty E1 T1
             <- {x : exp} {d : ofty x T1} ofty (E2 x) T2.
 
+ofty/lam  : ofty (lam E) (T1 => T2)
+             <- {x : exp} {d : ofty x T1} ofty (E x) T2.
+ofty/app  : ofty (app E1 E2) T
+             <- ofty E1 (T2 => T)
+             <- ofty E2 T2.
+
+
 %%% Query to find the type T of a particular expression.
 %query 1 2  D : ofty (let (num zero) ([x] x)) T.
 %query 1 2  D : ofty (let (str empty) ([x] (len x))) T.
@@ -113,21 +125,18 @@ ofty/let : ofty (let E1 E2) T2
 %query 3 3  ofty E tnum.
 
 
-
-%%% Exercise: fill in the rest of the above following PFPL chapter 4. 
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-%%% Structural Dynamics (following PFPL Section 5.2)
+%%% Structural Dynamics (following PFPL Section 5.2, 8.2)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 
 %%% The judgment for values 
-val : exp -> type.
+val : exp -> type.          %name val Dval dval.
 val/num : val (num N).                          %% PFPL rule 5.3a
 val/str : val (str N).                          %% PFPL rule 5.3b
+val/lam : val (lam E).
 
 %%% Single step evaluation
-ev : exp -> exp -> type.
+ev : exp -> exp -> type.     %name ev Dev dev.
 
 ev/plus : ev (plus (num N1) (num N2)) (num N3)  %% PFPL rule 5.4a
            <- add N1 N2 N3.
@@ -149,7 +158,16 @@ ev/let   : ev (let E1 E2) (E2 E1).              %% PFPL rule 5.4h
 %            <- val E1.                         %% Add this subgoal For call-by-value (as in PFPL)         
 
 % ev/let1   : ev (let E1 E2) (let E1p E2)       %% PFPL rule 5.4g   For call-by-value evaluation. 
-%            <- ev E1 E1p.     
+%            <- ev E1 E1p.
+
+ev/app1  : ev (app E1 E2) (app E1' E2)
+            <- ev E1 E1'.
+ev/app-lam : ev (app (lam E1) E2) (E1 E2).
+%            <- val E2.                         %% Add this subgoal For call-by-value (as in PFPL)         
+
+% ev/app2   : ev (app E1 E2) (app E1 E2')       %% For call-by-value evaluation. 
+%            <- ev E2 E2'.
+
 
 %%% Multiple step evaluation (PFPL Section 5.1)
 ev* : exp -> exp -> type.
@@ -189,7 +207,12 @@ ty-pres/len1  : ty-pres (ofty/len Dofty) (ev/len1 Dev) (ofty/len Doftyp)
 ty-pres/let   : ty-pres (ofty/let ([x] [dx] Dofty2 x dx) Dofty1) ev/let (Dofty2 E1 Dofty1).
                                                                %% case 2 shown in the PFPL proof
 
-%%%% The same as the last case but with some additional types and bound variables made explicit.
+ty-pres/app1  : ty-pres (ofty/app Dofty2 Dofty1) (ev/app1 Dev1) (ofty/app Dofty2 Dofty1')
+                 <- ty-pres Dofty1 Dev1 Dofty1'.
+ty-pres/beta  : ty-pres (ofty/app Dofty2 (ofty/lam ([x] [dx] Dofty x dx))) ev/app-lam (Dofty E2 Dofty2).
+
+
+%%%% The same as the let case but with some additional types and bound variables made explicit.
 %% ty-pres/let : ty-pres (ofty/let (Dofty2 : {x : exp} {dx : ofty x T1} ofty (E2 x) T2)
 %%                                 (Dofty1 : ofty E1 T1))
 %%                       ev/let
@@ -199,70 +222,109 @@ ty-pres/let   : ty-pres (ofty/let ([x] [dx] Dofty2 x dx) Dofty1) ev/let (Dofty2 
 %%% Specify the inputs and outputs for the intended "mode" of use for ty-pres
 %mode ty-pres +Dof1 +Dev -Dofp.
 %%% A hint on what combinations of bound variables can occur - here there are none.
-%% worlds () (ty-pres _ _ _).
+%worlds () (ty-pres _ _ _).
 %%% Tell Twelf to attempt to prove that ty-pres is total for the mode above, by induction on Dev.
-%% total Dev (ty-pres _ Dev _).
+%total Dev (ty-pres _ Dev _).
 
 %%% If the above %total assertion is accepted, then twelf has checked correctness of our proof,
 %%% as per the comment above ty-pres (every case is covered, and every recursion terminates).
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 %%% Alternative type preservation proof via an experimental feature
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 
 %%% The following instead asks twelf to fill in the cases in the proof automatically.
 %%% This succeeds in this case, and quite often - the types restrict the search significantly.
 %%% See: https://www.cs.cmu.edu/~twelf/guide-1-4/twelf_10.html 
-%% theorem ty-pres-auto : forall {E : exp} {T : ty} {Ep : exp} {Dofty1 : ofty E T} {Dev : ev E Ep}
-                        %% exists {Dofty2 : ofty Ep T}
-                        %% true.
+%theorem ty-pres-auto : forall {E : exp} {T : ty} {Ep : exp} {Dofty1 : ofty E T} {Dev : ev E Ep}
+                         exists {Dofty2 : ofty Ep T}
+                         true.
 
 %% Search for a proof inductive on Dev, with search depth limited to 2.
-%% prove 2 Dev (ty-pres-auto _ _ _ _ Dev _).
-
-%% nval : exp -> type.
-%% nval : (app
+%prove 2 Dev (ty-pres-auto _ _ _ _ Dev _).
 
 
-%%%%%%% Adding higher-order functions, PFPL Chapter 8
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+%%   Progress proof, including PFPL Theorems 6.4 and  8.6
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 
-=> : ty -> ty -> ty.
-%infix right 8 =>.
-
-lam  : (exp -> exp) -> exp.
-app  : exp -> (exp -> exp).    %% The parens are optional here.
-
-ofty/lam : ofty (lam E) (T1 => T2)
-            <- {x : exp} {d : ofty x T1} ofty (E x) T2.
-ofty/app : ofty (app E1 E2) T
-            <- ofty E1 (T2 => T)
-            <- ofty E2 T2.
-
-
-val/lam : val (lam E).
-ev/app1  : ev (app E1 E2) (app E1' E2)
-            <- ev E1 E1'.
-
-ev/app-lam : ev (app (lam E1) E2) (E1 E2).
-
-%%%%%%%%%%%%%%%%%%   Progress proof, PFPL 8.6
-
+%% First, a simple judgement to capture that an expression is either a value or has a step.
 eprogress : exp -> type.
-
 eprog/val : eprogress E
              <- val E.
 eprog/step : eprogress E
               <- ev E E'.
 
-progress : {E : exp} ofty E T -> eprogress E -> type.
+%% "output factoring" lemmas that splits out the cases for `eprogress E1` to show
+%% `eprogress (<exp-constructor> E1 E2)` for each.  It is applied to the induction output in progress/app.
+%% The val cases essentially include the canonical forms lemmas from PFPL.
 
-progress/lam  : progress (lam E') (ofty/lam D) (eprog/val val/lam).
+progress-app : {E2 : exp} eprogress E1 -> ofty E1 (T2 => T) -> eprogress (app E1 E2) -> type.
+p-a/step : progress-app E2 (eprog/step S) Dofty1 (eprog/step (ev/app1 S)).
+p-a/val  : progress-app E2 (eprog/val val/lam) (ofty/lam _) (eprog/step ev/app-lam).
 
-%%  The next two cases basically work, but I now think that we may
-%%  need an "output factoring lemma" here for totality to be checked see:
-%%     http://twelf.org/wiki/Output_factoring 
+%mode progress-app +E2 +Deprogress1 +Dofty -Deprogress.
+%worlds () (progress-app _ _ _ _).     %% No bound variables are added in `progress-app`.
+%total  {} (progress-app _ _ _ _).     %% Check that there's always an output for the inputs.
 
-progress/app1 : progress (app E1 E2) (ofty/app D2 D1) (eprog/step (ev/app1 Dev1))
-                 <- progress E1 D1 (eprog/step Dev1).
-progress/app2 : progress (app (lam E1) E2) (ofty/app D2 D1) (eprog/step ev/app-lam)
-                 <- progress (lam E1) D1 (eprog/val Dval1).
 
+%% Show add is total, with the add derivation as output
+can-add	: {N1} {N2} add N1 N2 N3 -> type.
+-	: can-add zero N add/z.
+-	: can-add (succ N1) N2 (add/s Dadd)
+	   <- can-add N1 N2 Dadd.
+
+%mode can-add +N1 +N2 -Dadd.
+%worlds () (can-add _ _ _).
+%total  D1 (can-add D1 _ _). 
+
+progress-plus : eprogress E1 -> eprogress E2 -> ofty E1 tnum -> ofty E2 tnum 
+                 -> eprogress (plus E1 E2) -> type.
+p-p/step : progress-plus (eprog/step S1) _ _ _ (eprog/step (ev/plus1 S1)).
+p-p/vs   : progress-plus (eprog/val Dval1) (eprog/step S2) _ _  (eprog/step (ev/plus2 S2 Dval1)).
+p-p/vv   : progress-plus (eprog/val (Dval1 : val (num N1))) (eprog/val (Dval2 : val (num N2))) _ _
+                         (eprog/step (ev/plus Dadd))
+            <- can-add N1 N2 Dadd.
+
+%mode progress-plus +Deprogress1 +Deprogress2 +Dofty1 +Dofty2 -Deprogress.
+%worlds () (progress-plus _ _ _ _ _).     %% No bound variables are added in `progress-app`.
+%total  {} (progress-plus _ _ _ _ _).     %% Check that there's always an output for the inputs.
+
+
+progress-len : eprogress E1 -> ofty E1 tstr -> eprogress (len E1) -> type.
+p-l/step : progress-len (eprog/step S1) _ (eprog/step (ev/len1 S1)).
+p-l/val  : progress-len (eprog/val Dval1)  _ (eprog/step (ev/len len/empty)).
+            
+%mode progress-len +Deprogress1 +Dofty1 -Deprogress.
+%worlds () (progress-len _ _ _).     %% No bound variables are added in `progress-app`.
+%total  {} (progress-len _ _ _).     %% Check that there's always an output for the inputs.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+%% Main progress theorem - by induction on the typing derivation `of E T`
+progress : {E : exp} {T : ty} ofty E T -> eprogress E -> type.
+
+progress/num   : progress (num N) tnum ofty/num (eprog/val val/num). %% nums are vals
+progress/str   : progress (str S) tstr ofty/str (eprog/val val/str). %% strs are vals
+progress/plus  : progress (plus E1 E2) tnum (ofty/plus Dofty2 Dofty1) Deprogress
+                  <- progress E1 tnum Dofty1 Deprogress1
+                  <- progress E2 tnum Dofty2 Deprogress2
+                  <- progress-plus Deprogress1 Deprogress2 Dofty1 Dofty2 Deprogress.
+                     
+progress/len  : progress (len E1) tnum (ofty/len Dofty1) Deprogress
+                 <- progress E1 tstr Dofty1 Deprogress1
+                 <- progress-len Deprogress1 Dofty1 Deprogress.
+
+progress/let  : progress (let E1 E2) _ _ (eprog/step ev/let).
+
+progress/lam  : progress (lam E') (T1 => T2) _ (eprog/val val/lam). %% lams are vals
+                %% The type constraints below are just for clarity.
+progress/app  : progress (app E1 E2) T (ofty/app Dofty2 (Dofty1 : ofty E1 (T2 => T)))
+                         (Deprogress : eprogress (app E1 E2))   
+                 <- progress E1 (T2 => T) Dofty1 (Deprogress1 : eprogress E1)  %% Inductively
+                 <- progress-app E2 Deprogress1 Dofty1 Deprogress.             %% Above lemma
+
+%mode progress +E +T +Dofty -Deprogress.
+%worlds ()   (progress _ _ _ _).         %%% The induction in `progress` adds no bound variables.
+%total Dofty (progress _ _ Dofty _).     %%% Check that progress is total by induction on Dofty.
