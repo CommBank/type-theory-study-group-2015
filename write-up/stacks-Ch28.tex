@@ -1,0 +1,159 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{xspace}
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+\author{Jost Berthold}
+
+\title{Control stacks (Chapter 28 PFPL)\\
+       {\small -- in a more accessible notation --}
+}
+
+\begin{document}
+%\maketitle
+
+\newcommand{\PCF}{{\it PCF}\xspace}
+
+\section*{\PCF (refresh)}
+
+\begin{align*}
+ Var, \{z\} & \subset \PCF\\
+s(e) & \in \PCF \mbox{ for } e \in \PCF\\
+\mbox{ifz}\,(e_1, x.e_2) &\in \PCF \mbox{ for } e_1, e_2 \in \PCF,\, x\in Var\\
+\mbox{lam}\,(x.e) &\in \PCF \mbox{ for } e \in \PCF,\, x\in Var\\
+\mbox{ap}\,(e_1,e_2) &\in \PCF \mbox{ for } e_1, e_2 \in \PCF\\
+\mbox{fix}\,(x.e) &\in \PCF \mbox{ for } e \in \PCF,\, x\in Var\\
+\end{align*}
+
+Expressions are analysed for consistent types, and evaluation (to what is 
+judged a \texttt{val}, \\textit{z, s(e), lam}) proceeds based on evaluation
+rules. While every rule does have just one premise that would require
+a sub-evaluation, this sub-evaluation is assumed to magically be finished and
+the outcome known, which makes it unfavourable for implementation. 
+
+\section*{K machine}
+
+The K machine evaluates PCF programs using a control stack instead of
+context provided by premises in rules. Thereby, a practical implementation
+can be derived directly from its definition.
+
+\subsection*{Domains and states}
+
+\begin{itemize}
+\item Expressions: $e \in \PCF$
+\item Stack frames: $$ F = \{ s(-)\} \cup \{ ap(-, e) | e \in \PCF \}
+                     \cup \{ {\it ifz}(e_1, x.e_2)(-) | e_1, e_2 \in \PCF; x \in Var \} $$
+\item Stack: $St = F^*$ a list of stack frames, possibly empty ($\varepsilon$)
+
+    My stack grows to the left (and uses (:) cons), whereas Harper's grows to the right.
+
+\item Machine state: $ S = St \times \{ \triangleleft, \triangleright\} \times \PCF $ 
+
+    $\triangleleft$ indicates use of the topmost stack frame,
+    $\triangleright$ indicates \PCF evaluation.
+\end{itemize}
+
+
+\subsection*{Transitions}
+The K machine is based on an evaluation relation on machine states, $\mapsto \in S \times S$:
+
+\newcommand{\eval}[2]{#1 \, \triangleright \, #2}
+\newcommand{\stack}[2]{#1 \, \triangleleft \, #2}
+
+\begin{itemize}
+\item Numbers:
+\[
+\begin{array}{rcl}
+    \eval{k}{z} &\mapsto& \stack{k}{z}\\
+    \eval{k}{s(e)} &\mapsto& \eval{s(-):k}{e}\\
+    \stack{s(-):k}{e} &\mapsto& \stack{k}{s(e)}\\
+\end{array}
+\]
+\item Branching:
+\[
+\begin{array}{rcl}
+    \eval{k}{{\it ifz}(e_1, x.e_2)(e)} &\mapsto& \eval{{\it ifz}(e_1, x.e_2)(-):k}{e}\\
+    \eval{{\it ifz}(e_1, x.e_2)(-): k}{z} &\mapsto& \eval{k}{e_1}\\
+    \eval{{\it ifz}(e_1, x.e_2)(-): k}{s(e)} &\mapsto& \eval{k}{[e/x]\,e_2}\\
+\end{array}
+\]
+\item Functions:
+\[
+\begin{array}{rcl}
+    \eval{k}{lam(x.e)} &\mapsto& \stack{k}{lam(x.e)}\\
+    \eval{k}{ap(e_1, e_2)} &\mapsto& \eval{ap(-, e_2): k}{e_1}\\
+    \eval{ap(-, e_2):k}{lam(x.e)} &\mapsto& \eval{k}{[e_2/x]\,e}\\
+    \eval{k}{fix(x.e)} &\mapsto& \eval{k}{[fix(x.e)/x]\,e}\\
+\end{array}
+\]
+\end{itemize}
+
+Somewhat strangely, functions are applied to unevaluated expression
+arguments (call by name). Other than that, no surprises.
+
+\paragraph*{Start and End}
+The machine evaluates an $e \in \PCF$ by starting in state
+$S_{start} = \eval{\varepsilon}{e}$ and performing
+evaluations from $\mapsto$ until end state
+$ \stack{\varepsilon}{e}$ with a \underline{value} $e$.
+
+\subsection*{Safety}
+\textbf{Safety} is argued for by a type-like property of stack frames.
+
+Stack frames "expect" a type (obvious definition), and usually "apply" themselves
+to transform that expected type to another.
+Stack frames are stacked up with matching types according to this idea:
+
+\begin{quote}
+If stack $k$ expects $\tau'$ and frame $f$ expects $\tau$ and yields $\tau'$,
+then stack $f:k$ is well-formed and expects $tau$. The empty stack can expect any type as required.
+
+\end{quote}
+
+The stack frame type must match the type of the expression under evaluation
+at all times.
+
+The proof of safety relates well-formed stacks and matching expressions to 
+the evaluation relation: 
+Shows that the K machine won't get stuck in K machine states without successor
+(i.e. in a state
+where stack and expression have a type mismatch) or  reach an ill-formed stack.
+
+Induction over machine state transitions proves the \textit{ok} part,
+the productivity is proved by case analysis on the \textit{ok} rules and
+the state well-formed-ness (checking all transition cases for the non-final case).
+
+\subsection*{Correctness according to \PCF}
+
+Any \PCF expression corresponds to a well-formed start state $\eval{\varepsilon}{e}$,
+it is safe to evalute \PCF expressions. Does it do the right thing then?
+(\textbf{correctness}, i.e. (\textbf{soundness} and \textbf{completeness}))
+
+\begin{itemize}
+\item[\bf Complete] Any \PCF expression that evaluates to a value does so with the K machine
+\item[\bf Sound] Anything that the K machine evaluates to a final state is a \PCF expression that evaluates to the corresponding final value
+\end{itemize}
+
+For \textbf{completeness}, an induction over the evaluation in \PCF is required,
+giving rise to
+a) generalising to any stack instead of the empty one, and 
+b) using an \textit{evaluation dynamics} of \PCF (i.e. values not evaluations)
+to be able to apply the induction hypothesis.
+
+We effectively prove (Lemma 28.2):
+if $ e \Downarrow v $ then $ \eval{k}{e} \mapsto^* \stack{k}{v}$ for every stack $k$,
+and assume the $\Downarrow$ evaluation dynamics relates this to $e \mapsto^* v$.
+
+\bigskip
+For \textbf{soundness}, a notion of "unravels-to" is introduced to abstract from multistep evaluation:
+$s \looparrowright e$ will give us that if state $s$ is final then $e$ is a value,
+and otherwise, a transition to $s' \looparrowright e'$ will lead to a value $v$
+i.e. (Lemma 28.3): if $ s \mapsto s'$ and $s \looparrowright e, s' \looparrowright e'$
+then $e \mapsto^* e'$.
+
+This is argued using another, complicated, judgement $\bowtie$, which effectively 
+describes the  stack evaluation and relates it to \PCF evaluation (Lemma 28.6).
+\end{document}
