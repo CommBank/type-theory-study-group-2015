@@ -1,0 +1,71 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+
+\usepackage{color}
+
+\usepackage{xspace}
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+\author{Jost Berthold}
+
+\title{Continuations (Chapter 30 PFPL)}
+
+\begin{document}
+%\maketitle
+
+\begin{verbatim}
+-- q :: Nat -> Nat is a sequence, ms q n multiplies its first n elements
+haskell_ms q n = foldr (*) 1 [ q k | k <- [0..n-1] ]
+\end{verbatim}
+
+
+\subsection*{Without shortcut}
+
+
+
+\[
+\begin{array}{l}
+\mbox{\tt fix } ms \mbox{ is}\\
+\quad\lambda\,q:\,\mathbb{N} \rightarrow \mathbb{N}.\\
+\quad\quad\lambda\,n:\, \mathbb{N}.\\
+\quad\quad\quad\mbox{case }n\,\{\\
+\quad\quad\quad\quad z\,\,\mapsto q(z)\\
+\quad\quad\quad\quad\mbox{succ}(n')\,\mapsto q(z) \cdot ms (q\circ \mbox{succ})(n')\\
+\quad\quad\quad\quad\}
+\end{array}
+\]
+
+\subsection*{With shortcut}
+
+\newcommand{\red}[1]{\color{red}{#1}}
+
+\[
+\begin{array}{l}
+\red{\lambda q':\,\mathbb{N} \rightarrow \mathbb{N} .}\\
+\quad \red{\lambda n':\,\mathbb{N}.}\\
+\quad\quad \red{\mbox{letcc } ret \mbox{ in}}\\
+%
+\quad\quad\quad\
+  (\mbox{\tt fix } ms \mbox{ is}\\
+\quad\quad\quad\
+  \quad\lambda\,q:\,\mathbb{N} \rightarrow \mathbb{N}.\\
+\quad\quad\quad\
+  \quad\quad\lambda\,n:\, \mathbb{N}.\\
+\quad\quad\quad\
+  \quad\quad\quad\mbox{case }n\,\{\\
+\quad\quad\quad\
+  \quad\quad\quad\quad z\,\,\mapsto q(z)\\
+\quad\quad\quad\
+  \quad\quad\quad\quad\mbox{succ}(n')
+  \mapsto \red{\mbox{ if } q(z)=0\mbox{ then throw } z\mbox{ to }ret}\\
+\quad\quad\quad\
+  \quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\mbox{\red{else }}
+  q(z) \cdot ms (q\circ \mbox{succ})(n')\\
+\quad\quad\quad\quad\})(q')(n')
+\end{array}
+\]
+
+\end{document}
