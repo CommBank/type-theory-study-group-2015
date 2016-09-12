@@ -1,0 +1,182 @@
+\documentclass[10pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+
+\usepackage{color}
+\usepackage{xspace}
+
+\usepackage{proof}
+
+\newcommand{\comment}[2]{{$\spadesuit${\bf #1: }{\sf #2}$\spadesuit$}}
+
+\author{Jost Berthold}
+\title{Overview of all PFPL languages}
+
+\begin{document}
+
+\section{Syntax}
+
+\subsection{Language E of Expressions}
+
+% some definitions for math typesetting
+\newcommand{\ttt}[1]{\mbox{\tt #1}}
+\newcommand{\tttt}[1]{\ \ttt{#1}\ }
+
+\begin{tabular}{p{1cm}llp{6cm}}
+\textbf{Lan-guage}& \textbf{Types} & \textbf{Expressions} & Comments\\
+\hline
+\textbf{E} (Ch.4)&
+$\begin{array}{l}
+  \ttt{num}\\
+  \ttt{str}\\
+\end{array} $ &
+$\begin{array}{l}
+x\\
+\ttt{num}[n]\\
+\ttt{str}[s]\\
+e_1 + e_2\\
+e_1 * e_2\\
+e_1 \hat{\ }\ e_2\\
+\ttt{let}\ x \tttt{be} e_1 \tttt{in} e_2
+\end{array} $ &
+ \\
+\hline
+\color{green}{
+\textbf{ED}  (Ch.8.1)} &
+&
+\color{green}{
+$\begin{array}{l}
+\ttt{fun}\ f(x : \tau_1) : \tau_2 \ = \ e_1 \tttt{in} e_2\\
+e_1(e_2)
+\end{array} $
+} &
+\textcolor{green}{
+Limited extension, superceded by next:
+First-order functions, with their names
+are from a different variable supply here.
+}\\
+\hline
+\color{blue}{
+\textbf{EF}  (Ch.8.2)} &
+\textcolor{blue}{
+$\begin{array}{l}
+\tau_1 \rightarrow \tau_2
+\end{array} $
+} &
+\color{blue}{
+$\begin{array}{l}
+\lambda (x:\tau) e\\
+e_1(e_2)
+\end{array} $
+} &
+\textcolor{blue}{
+Full functions as first-class citizens, with variable names.
+}\\
+\hline
+\end{tabular}
+
+\subsection{Language T of G\"odel total functions}
+\comment{JB}{\ldots TODO}
+
+\subsection{Language family PCF of (general) recursive functions}
+
+\begin{tabular}{p{1cm}llp{6cm}}
+\textbf{Lan-guage}& \textbf{Types} & \textbf{Expressions} & Comments\\
+\hline
+\textbf{PCF} (Ch.19)&
+$\begin{array}{l}
+  \ttt{nat}\\
+  \tau_1 \rightarrow \tau_2\\
+\end{array} $ &
+$\begin{array}{l}
+x\\
+\ttt{z}\\
+\ttt{s}(e)\\
+\ttt{ifz}\ e \ (e_0, \ x.e_1)\\
+\lambda (x:\tau) e\\
+e_1(e_2)\\
+\ttt{fix}\ (x: \tau) \tttt{is} e\\
+\end{array} $ &
+ \\
+ \hline
+\color{blue}{
+\textbf{FPC} (Ch.20)} &
+\textcolor{blue}{
+$\begin{array}{l}
+t\\
+\ttt{rec} t \tttt{is} \tau\\
+\end{array} $
+} &
+\color{blue}{
+$\begin{array}{l}
+\ttt{fold}_{t.\tau}(e)\\
+\ttt{unfold}(e)\\
+\end{array} $
+} &
+\textcolor{blue}{
+Full functions as first-class citizens, with variable names.
+}\\
+\hline
+
+\end{tabular}
+
+\newpage
+
+\section{Typing}
+
+\newcommand{\turnstile}{\vdash}
+
+\begin{tabular}{p{1cm}cp{6cm}}
+\textbf{Lan-guage}& \textbf{Rules} & Comments\\
+\hline\\
+\textbf{E} (Ch.4)&
+$
+\infer{\Gamma, x:\tau \turnstile x:\tau}{}
+\qquad
+\infer{\Gamma \turnstile \ttt{str}[s]: \ttt{str}}{}
+\qquad
+\infer{\Gamma \turnstile \ttt{num}[n]: \ttt{num}}{}
+$ & Typing axiom and atoms
+\\
+&
+$
+\infer{\Gamma \turnstile \ttt{plus}(e_1,e_2):\ttt{num}}
+	  {\Gamma\turnstile e_1:\ttt{num} & \Gamma\turnstile e_2:\ttt{num} }
+\quad
+\infer{\Gamma \turnstile \ttt{times}(e_1,e_2):\ttt{num}}
+	  {\Gamma\turnstile e_1:\ttt{num} & \Gamma\turnstile e_2:\ttt{num} }
+$ & \texttt{num} operations
+\\[2ex]
+&
+$
+\infer{\Gamma \turnstile \ttt{cat}(e_1,e_2):\ttt{str}}
+	  {\Gamma\turnstile e_1:\ttt{str} & \Gamma\turnstile e_2:\ttt{str} }
+\quad
+\infer{\Gamma \turnstile \ttt{len}(e):\ttt{num}}
+	  {\Gamma\turnstile e:\ttt{str} }
+$ & conversions
+\\[2ex]
+&
+$
+\infer{\Gamma \turnstile \ttt{let}\ x \tttt{be} e_1 \tttt{in} e_2: \tau_2}
+	  {\Gamma\turnstile e_1:\tau_1 & \Gamma, x:\tau_1 \turnstile e_2:\tau_2 }
+$ & local binding
+\\
+\hline
+\color{green}{
+\textbf{ED}  (Ch.8.1)} &
+\color{green}{
+\ldots
+} &
+\textcolor{green}{
+\comment{JB}{TODO}}\\
+\hline
+\end{tabular}
+
+\end{document}
