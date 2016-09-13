@@ -14,3 +14,5 @@ Corrections and extensions are very welcome!
   is a summary of the K machine from chapter 28 and related reasoning.
 * **shortcut-example-Ch30** ([tex](shortcut-example-Ch30.tex), [pdf](shortcut-example-Ch30.pdf)) 
   is the example with the shortcut from chapter 30 (continuations).
+
+The Toronto [CompSciCabal](http://cscabal.com) also have a helpful [cheatsheet](https://github.com/CompSciCabal/SMRTYPRTY/blob/master/pfpl/cheatsheet.pdf) summarising notations used in PFPL.
