@@ -8,7 +8,7 @@
 \usepackage{graphicx}
 \usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
 
-\usepackage{color}
+\usepackage[usenames,dvipsnames]{xcolor}
 \usepackage{xspace}
 
 \usepackage{proof}
@@ -28,7 +28,7 @@
 \newcommand{\ttt}[1]{\mbox{\tt #1}}
 \newcommand{\tttt}[1]{\ \ttt{#1}\ }
 
-\begin{tabular}{p{1cm}llp{6cm}}
+\begin{tabular}{p{1.3cm}llp{6cm}}
 \textbf{Lan-guage}& \textbf{Types} & \textbf{Expressions} & Comments\\
 \hline
 \textbf{E} (Ch.4)&
@@ -82,11 +82,108 @@ Full functions as first-class citizens, with variable names.
 \end{tabular}
 
 \subsection{Language T of G\"odel total functions}
-\comment{JB}{\ldots TODO}
+\begin{tabular}{p{1.3cm}llp{6cm}}
+\textbf{Lan-guage}& \textbf{Types} & \textbf{Expressions} & Comments\\
+\hline
+\textbf{T} (Ch.9)&
+$\begin{array}{l}
+  \ttt{nat}\\
+  \tau_1 \rightarrow \tau_2\\
+\end{array} $ &
+$\begin{array}{l}
+x, \ttt{z}, \ttt{s}(e)\\
+\ttt{rec}\ x \ (\ttt{z} \hookrightarrow e_0, \ttt{s}(x) \tttt{with} y \hookrightarrow e_1)\\
+\lambda (x:\tau) e\\
+e_1(e_2)
+\end{array} $ &
+\textbf{T:} Total functions (limited recursion) \\
+\hline
+\color{gray}{
+\textbf{Pairs} (Ch.10)} &
+\color{gray}{
+$\begin{array}{l}
+  \ttt{unit}\\
+  \tau_1 \times \tau_2\\
+\end{array} $ } &
+\color{gray}{
+$\begin{array}{l}
+()\\
+<e_1, e_2>\\
+e.\ttt{l}\\
+e.\ttt{r}
+\end{array} $ } &
+\color{gray}{
+Pairs, generalised in next extension
+}\\
+\hline
+\color{blue}{
+\textbf{Products} (Ch.10)} &
+\color{blue}{
+$\begin{array}{l}
+  <\tau_i>_{i\in I}
+\end{array} $ } &
+\color{blue}{
+$\begin{array}{l}
+<e_i>_{i\in I}\\
+e.i
+\end{array} $ } &
+\color{blue}{
+$I$ a finite index set
+}\\
+\hline
+\color{gray}{
+\textbf{Alter-native} (Ch.11)} &
+\color{gray}{
+$\begin{array}{l}
+  \ttt{void}\\
+  \tau_1 + \tau_2\\
+\end{array} $ } &
+\color{gray}{
+$\begin{array}{l}
+\ttt{abort}\\
+\ttt{l}.e\\
+\ttt{r}.e\\
+\ttt{case}\ e (\ttt{l}.x_1 \hookrightarrow e_1, \ttt{r}.x_2 \hookrightarrow e_2)
+\end{array} $ } &
+\color{gray}{
+choice between two things, generalised in next extension
+}\\
+\hline
+\color{purple}{
+\textbf{Sum} (Ch.11)} &
+\color{purple}{
+$\begin{array}{l}
+  <\tau_i>_{i\in I}
+\end{array} $ } &
+\color{purple}{
+$\begin{array}{l}
+\ttt{i}.e\\
+\ttt{case}\ e\ <\ttt{\i}.x_i \hookrightarrow e_i>_{i\in I}\\
+\end{array} $ } &
+\color{purple}{
+Choice from finite index set $I$.
+Can express Booleans and Enums.
+}\\
+\hline
+\color{violet}{
+\textbf{Infi-nite} (Ch.14)} &
+\color{violet}{
+./.}
+&
+\color{violet}{
+$\begin{array}{l}
+\ttt{map}_{t.\tau}(x.e')\ e
+\end{array} $ } &
+\color{violet}{
+The general type operation may use $+,\ \times$, $\ttt{unit}$ and $\ttt{void}$
+from before. Restricted to \textit{positive} operation.
+}\\
+\hline
+\end{tabular}
 
 \subsection{Language family PCF of (general) recursive functions}
 
-\begin{tabular}{p{1cm}llp{6cm}}
+\begin{tabular}{p{1.3cm}llp{6cm}}
 \textbf{Lan-guage}& \textbf{Types} & \textbf{Expressions} & Comments\\
 \hline
 \textbf{PCF} (Ch.19)&
