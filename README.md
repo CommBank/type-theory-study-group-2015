@@ -21,7 +21,7 @@ Inspired by the online [Type Theory Study Group 2015](https://github.com/type-th
 
 ## When and where
 
-We meet on Wednesday lunchtimes from 12:30 to 2:00 pm.
+We meet on Monday lunchtimes from 12:30 to 2:00 pm.
 
 Venue is the Commonwealth Bank of Australia, [255 Pitt Street Sydney](https://www.google.com.au/maps/place/255+Pitt+St,+Sydney+NSW+2000/@-33.8717056,151.2062129,17z/).
 
