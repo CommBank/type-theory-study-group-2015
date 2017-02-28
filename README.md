@@ -16,42 +16,26 @@ All are welcome!
 Inspired by the online [Type Theory Study Group 2015](https://github.com/type-theory/type-theory-study-group-2015).
 
 
-
-
-
 &#42; Programming Languages and Types (yet perfectly understandable) in Sydney &mdash; thanks to Danny Gratzer for the name suggestion.
 
 
 ## When and where
 
-We meet on Wednesday lunchtimes from 12 noon to 1:30.
+We meet on Monday lunchtimes from 12:30 to 2:00 pm.
 
-Venue is the Commonwealth Bank of Australia, [201 Sussex Street Sydney](https://www.google.com.au/maps/place/201+Sussex+St,+Sydney+NSW+2000/@-33.8715587,151.2013932,17z/).
+Venue is the Commonwealth Bank of Australia, [255 Pitt Street Sydney](https://www.google.com.au/maps/place/255+Pitt+St,+Sydney+NSW+2000/@-33.8717056,151.2062129,17z/).
 
 **Please RSVP** via the [Meetup page](http://www.meetup.com/Sydney-Type-Theory/) for catering purposes (and let us know if you have any particular dietary requirements).
 
 ## Content
 
-At the moment we're reading Bob Harper's [Practical Foundations of Programming Languages, 2nd Edition](http://www.cs.cmu.edu/~rwh/plbook/2nded.pdf).
+During 2015 and 2016 we read Bob Harper's [Practical Foundations of Programming Languages, 2nd Edition](http://www.cs.cmu.edu/~rwh/plbook/2nded.pdf).
 
+In 2017 we're reading Simon Thompson's [Type Theory and Functional Programming](https://www.cs.kent.ac.uk/people/staff/sjt/TTFP/).
 
 ## Agenda
 
-* Wednesday 4 November
-  Chapter 3: Hypothetical and general judgements
-
-
-## Past meetings
-
-* Wednesday 28 October
-
-  Discussed chapters 1 and 2 ("Abstract Syntax" and "Inductive definitions").
-  
-  Introduction to Twelf.
-  
-* Wednesday 21 October
-
-  General discussion of type theory, vote on name proposals.
+For details on what we've covered and what we'll be reading next see the [Meetup group](https://www.meetup.com/Sydney-Type-Theory/)
 
 ## Resources
 
