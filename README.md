@@ -6,9 +6,9 @@
 is a study group meeting weekly in Sydney, Australia for people interested in learning more about type theory and its connections to programming languages.
 
 [![Gitter chat](http://img.shields.io/badge/GITTER-join%20chat%20%E2%86%92-brightgreen.svg)](https://gitter.im/CommBank/PLATYPUS)
-</br/>
+<br />
 Twitter [@SydneyTypes](https://twitter.com/SydneyTypes)
-<br/>
+<br />
 Meetup [Sydney Type Theory](http://www.meetup.com/Sydney-Type-Theory/)
 
 All are welcome!
